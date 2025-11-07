@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Ofori Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Welcome to Ofori Blog</h1>
+        <p class="lead text-muted">Discover stories, thinking, and expertise from writers on any topic.</p>
+    </div>
+
+    {% if selected_category %}
+        <div class="alert alert-info">
+            Showing posts in category: <strong>{{ selected_category|title }}</strong>
+            <a href="{% url 'home' %}" class="float-end">Clear filter</a>
+        </div>
+    {% endif %}
+
+    {% if posts %}
+        <div class="row">
+            {% for post in posts %}
+                <div class="col-md-4 mb-4">
+                    <div class="card post-card h-100 shadow-sm">
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <span class="badge bg-secondary category-badge mb-2">{{ post.get_category_display }}</span>
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <p class="card-text text-muted small">{{ post.get_excerpt }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i>
+                                    <a href="{% url 'user_profile' post.author.username %}" class="text-decoration-none">
+                                        {{ post.author.username }}
+                                    </a>
+                                </small>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ post.created_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> {{ post.get_reading_time }} min read
+                                </small>
+                                <small class="text-muted">
+                                    <i class="bi bi-heart-fill text-danger"></i> {{ post.get_like_count }}
+                                </small>
+                            </div>
+                            <a href="{% url 'post_detail' post.slug %}" class="btn btn-primary btn-sm w-100">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+            <h3 class="mt-3">No posts yet</h3>
+            <p class="text-muted">Be the first to share your story!</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'post_create' %}" class="btn btn-primary">Create Post</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

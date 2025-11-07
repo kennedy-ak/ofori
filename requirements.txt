@@ -1,0 +1,5 @@
+Django
+django-summernote
+django-cors-headers
+Pillow
+python-decouple

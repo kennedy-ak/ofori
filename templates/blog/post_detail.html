@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - Ofori Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Post Header -->
+            <div class="mb-4">
+                <span class="badge bg-secondary mb-2">{{ post.get_category_display }}</span>
+                {% if post.status == 'draft' %}
+                    <span class="badge bg-warning text-dark mb-2">Draft</span>
+                {% endif %}
+                <h1 class="display-5 mb-3">{{ post.title }}</h1>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <a href="{% url 'user_profile' post.author.username %}" class="text-decoration-none">
+                            <i class="bi bi-person-circle"></i> {{ post.author.get_full_name|default:post.author.username }}
+                        </a>
+                    </div>
+                    <div class="text-muted">
+                        <i class="bi bi-calendar"></i> {{ post.created_at|date:"F d, Y" }}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 text-muted mb-3">
+                    <span><i class="bi bi-clock"></i> {{ post.get_reading_time }} min read</span>
+                    <span><i class="bi bi-heart-fill text-danger"></i> {{ post.get_like_count }} likes</span>
+                </div>
+            </div>
+
+            <!-- Featured Image -->
+            {% if post.image %}
+                <img src="{{ post.image.url }}" class="img-fluid rounded mb-4 shadow" alt="{{ post.title }}">
+            {% endif %}
+
+            <!-- Post Content -->
+            <div class="post-content mb-5">
+                {{ post.content|safe }}
+            </div>
+
+            <hr>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-outline-danger like-btn" data-slug="{{ post.slug }}">
+                            {% if post.is_liked_by user %}
+                                <i class="bi bi-heart-fill"></i> Unlike
+                            {% else %}
+                                <i class="bi bi-heart"></i> Like
+                            {% endif %}
+                            <span class="like-count">{{ post.get_like_count }}</span>
+                        </button>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-danger">
+                            <i class="bi bi-heart"></i> Like
+                        </a>
+                    {% endif %}
+                </div>
+
+                {% if user == post.author or user.is_staff %}
+                    <div>
+                        <a href="{% url 'post_edit' post.slug %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'post_delete' post.slug %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Author Info -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        {% if post.author.profile.profile_image %}
+                            <img src="{{ post.author.profile.profile_image.url }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ post.author.username }}">
+                        {% else %}
+                            <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                {{ post.author.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-0">{{ post.author.get_full_name|default:post.author.username }}</h5>
+                            <p class="text-muted mb-0">@{{ post.author.username }}</p>
+                            {% if post.author.profile.bio %}
+                                <p class="small text-muted mb-0 mt-1">{{ post.author.profile.bio }}</p>
+                            {% endif %}
+                            <a href="{% url 'user_profile' post.author.username %}" class="btn btn-sm btn-outline-primary mt-2">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Like button functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeBtn = document.querySelector('.like-btn');
+        if (likeBtn) {
+            likeBtn.addEventListener('click', function() {
+                const slug = this.dataset.slug;
+                fetch(`/post/${slug}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const icon = this.querySelector('i');
+                    const count = this.querySelector('.like-count');
+
+                    if (data.liked) {
+                        icon.className = 'bi bi-heart-fill';
+                        this.innerHTML = `<i class="bi bi-heart-fill"></i> Unlike <span class="like-count">${data.like_count}</span>`;
+                    } else {
+                        icon.className = 'bi bi-heart';
+                        this.innerHTML = `<i class="bi bi-heart"></i> Like <span class="like-count">${data.like_count}</span>`;
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

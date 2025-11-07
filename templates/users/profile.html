@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }}'s Profile - Ofori Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    {% if profile.profile_image %}
+                        <img src="{{ profile.profile_image.url }}" alt="{{ profile_user.username }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">
+                            {{ profile_user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+
+                    <h3>{{ profile_user.get_full_name|default:profile_user.username }}</h3>
+                    <p class="text-muted">@{{ profile_user.username }}</p>
+
+                    {% if profile.is_approved %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Approved Writer
+                        </span>
+                    {% endif %}
+
+                    {% if profile.bio %}
+                        <hr>
+                        <p class="text-muted">{{ profile.bio }}</p>
+                    {% endif %}
+
+                    <hr>
+                    <small class="text-muted">
+                        Member since {{ profile.created_at|date:"F Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h3 class="mb-4">Published Posts ({{ posts.count }})</h3>
+
+            {% if posts %}
+                <div class="row">
+                    {% for post in posts %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card post-card h-100 shadow-sm">
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body">
+                                    <span class="badge bg-secondary category-badge mb-2">{{ post.get_category_display }}</span>
+                                    <h5 class="card-title">{{ post.title }}</h5>
+                                    <p class="card-text text-muted small">{{ post.get_excerpt }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i> {{ post.get_reading_time }} min read
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-heart-fill"></i> {{ post.get_like_count }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'post_detail' post.slug %}" class="btn btn-primary btn-sm mt-2 w-100">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No published posts yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

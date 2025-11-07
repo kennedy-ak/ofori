@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Unsubscribe - Ofori Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5 text-center">
+                    <i class="bi bi-envelope-x" style="font-size: 4rem; color: #dc3545;"></i>
+                    <h2 class="mt-4 mb-3">Unsubscribe from Newsletter</h2>
+
+                    <p class="text-muted mb-4">
+                        Are you sure you want to unsubscribe from our newsletter?
+                    </p>
+
+                    <div class="alert alert-info text-start">
+                        <strong>Email:</strong> {{ subscription.email }}
+                    </div>
+
+                    <p class="small text-muted mb-4">
+                        You'll stop receiving updates about new blog posts. You can always resubscribe later.
+                    </p>
+
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-check-circle"></i> Yes, Unsubscribe
+                        </button>
+                    </form>
+
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
