@@ -104,5 +104,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Load jQuery first (required for Summernote) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {{ form.media.js }}
 {% endblock %}
