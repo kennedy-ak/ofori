@@ -27,7 +27,7 @@ class Post(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='others')
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

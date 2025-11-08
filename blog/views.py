@@ -39,6 +39,7 @@ def post_detail_view(request, slug):
 
     context = {
         'post': post,
+        'is_liked': post.is_liked_by(request.user),
     }
 
     return render(request, 'blog/post_detail.html', context)
@@ -57,11 +58,12 @@ def post_create_view(request):
         content = request.POST.get('content')
         category = request.POST.get('category')
         status = request.POST.get('status', 'draft')
+        created_at = request.POST.get('created_at')
         image = request.FILES.get('image')
 
         # Validation
-        if not all([title, content, category]):
-            messages.error(request, 'Title, content, and category are required.')
+        if not all([title, content, category, created_at]):
+            messages.error(request, 'Title, content, category, and date are required.')
             return render(request, 'blog/post_form.html')
 
         # Create post
@@ -70,6 +72,7 @@ def post_create_view(request):
             content=content,
             category=category,
             status=status,
+            created_at=created_at,
             author=request.user,
             image=image
         )
@@ -102,11 +105,12 @@ def post_edit_view(request, slug):
         content = request.POST.get('content')
         category = request.POST.get('category')
         status = request.POST.get('status', 'draft')
+        created_at = request.POST.get('created_at')
         image = request.FILES.get('image')
 
         # Validation
-        if not all([title, content, category]):
-            messages.error(request, 'Title, content, and category are required.')
+        if not all([title, content, category, created_at]):
+            messages.error(request, 'Title, content, category, and date are required.')
             return render(request, 'blog/post_form.html', {'post': post})
 
         # Track if post is being published for the first time
@@ -118,6 +122,7 @@ def post_edit_view(request, slug):
         post.content = content
         post.category = category
         post.status = status
+        post.created_at = created_at
 
         if image:
             post.image = image

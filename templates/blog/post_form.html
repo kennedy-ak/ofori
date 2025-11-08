@@ -38,6 +38,13 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="created_at" class="form-label">Publication Date *</label>
+                            <input type="datetime-local" class="form-control" id="created_at" name="created_at"
+                                   value="{% if post %}{{ post.created_at|date:'Y-m-d\TH:i' }}{% endif %}" required>
+                            <small class="text-muted">Select the date and time for this post.</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="content" class="form-label">Content *</label>
                             <textarea class="form-control" id="content" name="content" rows="15" required>{% if post %}{{ post.content }}{% endif %}</textarea>
                             <small class="text-muted">Use the rich text editor to format your content.</small>
