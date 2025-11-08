@@ -19,57 +19,67 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
 
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
                         <div class="mb-3">
-                            <label for="title" class="form-label">Title *</label>
-                            <input type="text" class="form-control" id="title" name="title"
-                                   value="{% if post %}{{ post.title }}{% endif %}" required>
+                            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="category" class="form-label">Category *</label>
-                            <select class="form-select" id="category" name="category" required>
-                                <option value="">Select a category</option>
-                                <option value="technology" {% if post.category == 'technology' %}selected{% endif %}>Technology</option>
-                                <option value="politics" {% if post.category == 'politics' %}selected{% endif %}>Politics</option>
-                                <option value="life" {% if post.category == 'life' %}selected{% endif %}>Life</option>
-                                <option value="advice" {% if post.category == 'advice' %}selected{% endif %}>Advice</option>
-                                <option value="others" {% if post.category == 'others' %}selected{% endif %}>Others</option>
-                            </select>
+                            <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small">{{ form.category.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="created_at" class="form-label">Publication Date *</label>
-                            <input type="datetime-local" class="form-control" id="created_at" name="created_at"
-                                   value="{% if post %}{{ post.created_at|date:'Y-m-d\TH:i' }}{% endif %}" required>
-                            <small class="text-muted">Select the date and time for this post.</small>
+                            <label for="{{ form.created_at.id_for_label }}" class="form-label">{{ form.created_at.label }}</label>
+                            {{ form.created_at }}
+                            <small class="text-muted d-block">{{ form.created_at.help_text }}</small>
+                            {% if form.created_at.errors %}
+                                <div class="text-danger small">{{ form.created_at.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="content" class="form-label">Content *</label>
-                            <textarea class="form-control" id="content" name="content" rows="15" required>{% if post %}{{ post.content }}{% endif %}</textarea>
-                            <small class="text-muted">Use the rich text editor to format your content.</small>
+                            <label for="{{ form.content.id_for_label }}" class="form-label">{{ form.content.label }}</label>
+                            {{ form.content }}
+                            <small class="text-muted d-block">{{ form.content.help_text }}</small>
+                            {% if form.content.errors %}
+                                <div class="text-danger small">{{ form.content.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="image" class="form-label">Featured Image</label>
+                            <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
                             {% if post and post.image %}
                                 <div class="mb-2">
                                     <img src="{{ post.image.url }}" alt="Current image" class="img-thumbnail" style="max-height: 200px;">
                                     <p class="small text-muted mt-1">Current image (upload new one to replace)</p>
                                 </div>
                             {% endif %}
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status *</label>
-                            <select class="form-select" id="status" name="status" required>
-                                <option value="draft" {% if not post or post.status == 'draft' %}selected{% endif %}>Draft</option>
-                                <option value="published" {% if post.status == 'published' %}selected{% endif %}>Published</option>
-                            </select>
-                            <small class="text-muted">
-                                Draft posts are only visible to you. Published posts are visible to everyone and will trigger newsletter notifications.
-                            </small>
+                            <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                            {{ form.status }}
+                            <small class="text-muted d-block">{{ form.status.help_text }}</small>
+                            {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="d-flex gap-2">
@@ -90,29 +100,9 @@
 {% endblock %}
 
 {% block extra_css %}
-<!-- Summernote CSS -->
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs5.min.css" rel="stylesheet">
+{{ form.media.css }}
 {% endblock %}
 
 {% block extra_js %}
-<!-- Summernote JS -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs5.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#content').summernote({
-            height: 400,
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'clear']],
-                ['fontname', ['fontname']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['table', ['table']],
-                ['insert', ['link', 'picture', 'video']],
-                ['view', ['fullscreen', 'codeview', 'help']]
-            ]
-        });
-    });
-</script>
+{{ form.media.js }}
 {% endblock %}

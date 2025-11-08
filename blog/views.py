@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from .models import Post, Like
+from .forms import PostForm
 from newsletter.utils import send_new_post_notification
 
 
@@ -54,40 +55,25 @@ def post_create_view(request):
         return redirect('home')
 
     if request.method == 'POST':
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        category = request.POST.get('category')
-        status = request.POST.get('status', 'draft')
-        created_at = request.POST.get('created_at')
-        image = request.FILES.get('image')
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
 
-        # Validation
-        if not all([title, content, category, created_at]):
-            messages.error(request, 'Title, content, category, and date are required.')
-            return render(request, 'blog/post_form.html')
+            # Send newsletter notification if published
+            if post.status == 'published':
+                try:
+                    send_new_post_notification(post)
+                except Exception as e:
+                    print(f"Error sending newsletter: {e}")
 
-        # Create post
-        post = Post.objects.create(
-            title=title,
-            content=content,
-            category=category,
-            status=status,
-            created_at=created_at,
-            author=request.user,
-            image=image
-        )
+            messages.success(request, f'Post "{post.title}" created successfully!')
+            return redirect('post_detail', slug=post.slug)
+    else:
+        form = PostForm()
 
-        # Send newsletter notification if published
-        if status == 'published':
-            try:
-                send_new_post_notification(post)
-            except Exception as e:
-                print(f"Error sending newsletter: {e}")
-
-        messages.success(request, f'Post "{title}" created successfully!')
-        return redirect('post_detail', slug=post.slug)
-
-    return render(request, 'blog/post_form.html')
+    return render(request, 'blog/post_form.html', {'form': form})
 
 
 @login_required
@@ -100,50 +86,32 @@ def post_edit_view(request, slug):
         messages.error(request, 'You do not have permission to edit this post.')
         return redirect('post_detail', slug=slug)
 
+    # Track if post is being published for the first time
+    was_draft = post.status == 'draft'
+
     if request.method == 'POST':
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        category = request.POST.get('category')
-        status = request.POST.get('status', 'draft')
-        created_at = request.POST.get('created_at')
-        image = request.FILES.get('image')
+        form = PostForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            # Check if title changed and regenerate slug
+            if post.title != form.cleaned_data['title']:
+                post.slug = ''
 
-        # Validation
-        if not all([title, content, category, created_at]):
-            messages.error(request, 'Title, content, category, and date are required.')
-            return render(request, 'blog/post_form.html', {'post': post})
+            post = form.save()
 
-        # Track if post is being published for the first time
-        was_draft = post.status == 'draft'
-        is_now_published = status == 'published'
+            # Send newsletter notification if just published
+            if was_draft and post.status == 'published':
+                try:
+                    send_new_post_notification(post)
+                except Exception as e:
+                    print(f"Error sending newsletter: {e}")
 
-        # Update post
-        post.title = title
-        post.content = content
-        post.category = category
-        post.status = status
-        post.created_at = created_at
-
-        if image:
-            post.image = image
-
-        # Regenerate slug if title changed
-        if post.title != title:
-            post.slug = ''
-
-        post.save()
-
-        # Send newsletter notification if just published
-        if was_draft and is_now_published:
-            try:
-                send_new_post_notification(post)
-            except Exception as e:
-                print(f"Error sending newsletter: {e}")
-
-        messages.success(request, f'Post "{title}" updated successfully!')
-        return redirect('post_detail', slug=post.slug)
+            messages.success(request, f'Post "{post.title}" updated successfully!')
+            return redirect('post_detail', slug=post.slug)
+    else:
+        form = PostForm(instance=post)
 
     context = {
+        'form': form,
         'post': post,
         'is_edit': True,
     }
